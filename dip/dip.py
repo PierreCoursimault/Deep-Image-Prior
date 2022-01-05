@@ -1,23 +1,23 @@
+from __future__ import print_function
+import matplotlib.pyplot as plt
+%matplotlib inline
+
+import os
+#os.environ['CUDA_VISIBLE_DEVICES'] = '3'
+
+import numpy as np
+from models.skip import *
+
+import torch
+import torch.optim
+
+from skimage.metrics import peak_signal_noise_ratio
+from utils.denoising_utils import *
+
+
 def Main(input_leopold = False):
 
   # Import libs
-
-  from __future__ import print_function
-  import matplotlib.pyplot as plt
-  %matplotlib inline
-
-  import os
-  #os.environ['CUDA_VISIBLE_DEVICES'] = '3'
-
-  import numpy as np
-  from models.skip import *
-
-  import torch
-  import torch.optim
-
-  from skimage.metrics import peak_signal_noise_ratio
-  from utils.denoising_utils import *
-
   torch.backends.cudnn.enabled = True
   torch.backends.cudnn.benchmark =True
   dtype = torch.cuda.FloatTensor
