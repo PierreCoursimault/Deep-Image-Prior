@@ -1,6 +1,4 @@
 from __future__ import print_function
-import matplotlib.pyplot as plt
-%matplotlib inline
 
 import os
 #os.environ['CUDA_VISIBLE_DEVICES'] = '3'
