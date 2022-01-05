@@ -44,6 +44,8 @@ def Main(input_leopold = False):
           img_np: image, np.array with values from 0 to 1
           sigma: std of the noise
       """
+      
+      import numpy as np
       img_noisy_np = np.clip(img_np + np.random.normal(scale=sigma, size=img_np.shape), 0, 1).astype(np.float32)
       img_noisy_pil = np_to_pil(img_noisy_np)
 
