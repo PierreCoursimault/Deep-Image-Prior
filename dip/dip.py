@@ -72,7 +72,17 @@ def closure():
 
 def Main(input_leopold = False):
   # Import libs
-  imports()
+  from __future__ import print_function
+  import os
+  #os.environ['CUDA_VISIBLE_DEVICES'] = '3'
+  import numpy as np
+  from models.skip import *
+  import torch
+  import torch.optim
+  from skimage.metrics import peak_signal_noise_ratio
+  from utils.denoising_utils import *
+
+  #imports()
   torch.backends.cudnn.enabled = True
   torch.backends.cudnn.benchmark =True
   dtype = torch.cuda.FloatTensor
