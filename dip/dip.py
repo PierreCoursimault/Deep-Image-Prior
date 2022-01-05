@@ -1,31 +1,27 @@
-from __future__ import print_function
-
-import os
-#os.environ['CUDA_VISIBLE_DEVICES'] = '3'
-
-import numpy as np
-from models.skip import *
-
-import torch
-import torch.optim
-
-from skimage.metrics import peak_signal_noise_ratio
-from utils.denoising_utils import *
+def imports():
+  from __future__ import print_function
+  import os
+  #os.environ['CUDA_VISIBLE_DEVICES'] = '3'
+  import numpy as np
+  from models.skip import *
+  import torch
+  import torch.optim
+  from skimage.metrics import peak_signal_noise_ratio
+  from utils.denoising_utils import *
 
 
 # Load image
 
 def get_noisy_image(img_np, sigma):
-    """Adds Gaussian noise to an image.
+  """Adds Gaussian noise to an image.
 
-    Args: 
-        img_np: image, np.array with values from 0 to 1
-        sigma: std of the noise
-    """
-    img_noisy_np = np.clip(img_np + np.random.normal(scale=sigma, size=img_np.shape), 0, 1).astype(np.float32)
-    img_noisy_pil = np_to_pil(img_noisy_np)
-
-    return img_noisy_pil, img_noisy_np
+  Args: 
+      img_np: image, np.array with values from 0 to 1
+      sigma: std of the noise
+  """
+  img_noisy_np = np.clip(img_np + np.random.normal(scale=sigma, size=img_np.shape), 0, 1).astype(np.float32)
+  img_noisy_pil = np_to_pil(img_noisy_np)
+  return img_noisy_pil, img_noisy_np
 
   
 def closure():
@@ -76,6 +72,7 @@ def closure():
 
 def Main(input_leopold = False):
   # Import libs
+  imports()
   torch.backends.cudnn.enabled = True
   torch.backends.cudnn.benchmark =True
   dtype = torch.cuda.FloatTensor
