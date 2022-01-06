@@ -117,7 +117,7 @@ def closure(params):#reg_noise_std, net_input_saved, noise, net
   
 # Main function
 
-def Main(img_np):
+def DIP_2D(img_np):
   #Set parameters  
   imsize =-1
   PLOT = True
