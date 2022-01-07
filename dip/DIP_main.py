@@ -37,12 +37,22 @@ def get_noisy_image(img_np, sigma):
     return img_noisy_pil, img_noisy_np
   
 
+"""
+Entrees : 
+- img_pil     : image 2D avec des valeurs entre 0 et 1
+- INPUT       : 'noise' pour filtrer les tenseurs avec du bruitn, et 'meshgrid' pour utiliser np.meshgrid
+- pad         : type de padding utilisé
+- input_depth : profocndeur de l'image (nombre de canaux)
+
+Sorties :
+- net             : reseau de neurones utilisé par l'algorithme
+- net_input       : tenseur contenant l'image 2D de bruit blanc avec des valeurs entre 0 et 1, taille = (1,1,taille,taille)
+- img_noisy_torch : tenseur contenant image 2D bruitée avec un bruit gaussien et des valeurs entre 0 et 1
+- mse             : mean squared error utilisé pour la loss du réseau
+"""  
 def Setup(img_pil, img_noisy_np, INPUT = 'noise', pad = 'reflection', input_depth = 1):
 
-  #INPUT = 'noise' 'meshgrid'
-  #OPTIMIZER='adam'  'LBFGS'
-
-  reg_noise_std = 1./30. #set to 1./20. for sigma=50
+# Creation du reseau de neurones
   net = skip(
               input_depth, 1, 
               num_channels_down = [128, 128, 128, 128, 128], 
@@ -50,10 +60,18 @@ def Setup(img_pil, img_noisy_np, INPUT = 'noise', pad = 'reflection', input_dept
               num_channels_skip = [4, 4, 4, 4, 4], 
               upsample_mode='bilinear',
               need_sigmoid=True, need_bias=True, pad=pad, act_fun='LeakyReLU')
-  net = net.type(dtype)      
+ 
+  net = net.type(dtype)  
+ 
+# Creation de l'image d'entree (bruit blanc) de taille (1,1,taille[0],taille[1])
   net_input = get_noise(input_depth, INPUT, (img_pil.size[1], img_pil.size[0])).type(dtype).detach()
-  mse = torch.nn.MSELoss().type(dtype) #Loss
+    
+# Loss
+  mse = torch.nn.MSELoss().type(dtype)
+    
+# conversion de l'image donnee en entree en Tenseur pour Torch
   img_noisy_torch = np_to_torch(img_noisy_np).type(dtype)
+    
   return net, net_input, img_noisy_torch, mse
 
 def closure(params):#reg_noise_std, net_input_saved, noise, net
