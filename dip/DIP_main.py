@@ -74,28 +74,50 @@ def Setup(img_pil, img_noisy_np, INPUT = 'noise', pad = 'reflection', input_dept
     
   return net, net_input, img_noisy_torch, mse
 
+
+"""
+Entree : 
+- params     : Dictionnaire de parametres comportant ...........
+
+Sorties :
+- total_loss : Loss renvoyee par le reseau DIP à la fin des iterations entre l'image renvoyee et l'image a approximer
+"""  
 def closure(params):#reg_noise_std, net_input_saved, noise, net
+    
   if params['reg_noise_std'] > 0:
       params['net_input'] = params['net_input_saved'] + params['noise'].normal_() * params['reg_noise_std']
+  
+  # out : Tenseur renvoye par le reseau de neurones avec net_input le bruit blanc donne en entre au reseau
   out = params['net'](params['net_input'])
+  # out_avg : Tenseur moyen des sorties du reseau au cours du temps
   out_avg = None
 
-  # Smoothing
+  # Met à jour l'image moyenne renvoyee
+  # regle de mise a jour :
+  # image moyenne = image moyenne                                                       si image moyenne = Rien
+  # image moyenne = image moyenne * coefficient + sortie du reseau * (1 - coefficient)  sinon
   if params['out_avg'] is None:
       params['out_avg'] = out.detach()
   else:
       params['out_avg'] = params['out_avg'] * params['exp_weight'] + out.detach() * (1 - params['exp_weight'])
-          
+  
+  # Calcul de la Loss par rapport à la sortie du reseau et img_noisy_torch qui est le Tenseur renvoye par la fonction Setup()
   total_loss = params['mse'](out, params['img_noisy_torch'])
+  # Backtracking
   total_loss.backward()
-
-  psrn_noisy = peak_signal_noise_ratio(params['img_noisy_np'], out.detach().cpu().numpy()[0][0]) 
+  
+  # caclul du PSNR entre l'image donnee a RED et la sortie du reseau
+  # img_noisy_np : image 2D avec valeurs entre 0 et 1 que DIP essaie d'approximer sous format array de numpy
+  # out.detach().cpu().numpy() : de taille (1, nb canaux = 1,nb_colonnes,nb_lignes) = sortie du reseau remis sous forme array numpy
+  psrn_noisy = peak_signal_noise_ratio(params['img_noisy_np'], out.detach().cpu().numpy()[0][0])
+  # ar : de taille (1,taille,taille) car 1 canal
   psrn_gt    = peak_signal_noise_ratio(params['ar'], out.detach().cpu().numpy()[0]) 
   psrn_gt_sm = peak_signal_noise_ratio(params['ar'], params['out_avg'].detach().cpu().numpy()[0]) 
   
-  # Note that we do not have GT for the "snail" example
-  # So 'PSRN_gt', 'PSNR_gt_sm' make no sense
+  
+  # Affiche les résultats Loss et PSNR
   print ('Iteration %05d    Loss %f   PSNR_noisy: %f   PSRN_gt: %f PSNR_gt_sm: %f' % (params['i'], total_loss.item(), psrn_noisy, psrn_gt, psrn_gt_sm), '\r', end='')
+  # Plot l'image renvoyee par DIP a la derniere iteration et la moyenne de toutes les images renvoyees jusque là
   if  params['PLOT'] and params['i'] % params['show_every'] == 0:
       out_np = torch_to_np(out)
       plot_image_grid([np.clip(out_np, 0, 1), np.clip(torch_to_np(params['out_avg']), 0, 1)], factor=params['figsize'], nrow=1)
