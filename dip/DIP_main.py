@@ -77,7 +77,23 @@ def Setup(img_pil, img_noisy_np, INPUT = 'noise', pad = 'reflection', input_dept
 
 """
 Entree : 
-- params     : Dictionnaire de parametres comportant ...........
+- params     : Dictionnaire de parametres comportant :
+                  reg_noise_std     : deviation standard du bruit qui va etre utilisee pour bruite l'image de depart donnee au reseau. Si 0, alors aucun bruit n'est ajoute
+                  net_input_saved   : sauvegarde de l'image donnee a DIP en entree lors de l'iteration precedente
+                  noise             : image donnee à DIP lors de l'iteration precedente en entree qui va etre normalisee
+                  net               : reseau de neurones utilise pour DIP
+                  out_avg           : moyenne ponderee de toutes les sorties du reseau au cours du temps pour une itération du RED
+                  mse               : mean squared error utilisé pour la loss du réseau
+                  psrn_noisy_last   : sauvegarde du psnr de l'image renvoyee par DIP lors de l'affichage precedent
+                  i                 : nombre d'iterations faites par DIP 
+                  img_noisy_np      : image 2D avec des valeurs entre 0 et 1 en format array de numpy et bruitee que DIP va essayer d'estimer
+                  img_noisy_torch   : img_noisy_np mise sous forme de Tenseur pour pouvoir etre utilisee par le reseau de neurones
+                  net_input         : bruit blanc donne à DIP. C'est l'image de depart du reseau qu'il va essayer de faire converger vers img_noisy_np
+                  ar                : image de base au format numpy array avec des valeurs entre 0 et 1 avant quelle soit bruitee
+                  PLOT              : booleen pour plot les images sorties par DIP toutes les 'show_every' itérations
+                  show_every        : nombre d'itérations entre chaque affichage de l'image de DIP
+                  figsize           : taille d'affichage des images de sorties de DIP
+                  exp_weight        : poids pour pondérer l'image moyenne (moyenne = moyenne * exp_weight + nouvelle valeur * (1-exp_weight))
 
 Sorties :
 - total_loss : Loss renvoyee par le reseau DIP à la fin des iterations entre l'image renvoyee et l'image a approximer
