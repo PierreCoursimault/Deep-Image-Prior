@@ -21,20 +21,6 @@ torch.backends.cudnn.enabled = True
 torch.backends.cudnn.benchmark =True
 dtype = torch.cuda.FloatTensor
 
-#Tool function
-
-def get_noisy_image(img_np, sigma):
-    """Adds Gaussian noise to an image.
-    
-    Args: 
-        img_np: image, np.array with values from 0 to 1
-        sigma: std of the noise
-    """
-    img_noisy_np = np.clip(img_np + np.random.normal(scale=sigma, size=img_np.shape), 0, 1).astype(np.float32)
-    img_noisy_pil = np_to_pil(img_noisy_np)
-
-    return img_noisy_pil, img_noisy_np
-
 # Redefine some DIP functions
 
 def Setup(img_pil, img_noisy_np, INPUT = 'noise', pad = 'reflection', input_depth = 1):
@@ -43,7 +29,6 @@ def Setup(img_pil, img_noisy_np, INPUT = 'noise', pad = 'reflection', input_dept
   #OPTIMIZER='adam'  'LBFGS'
 
   reg_noise_std = 1./30. #set to 1./20. for sigma=50
-
   net = skip(
               input_depth, 1, 
               num_channels_down = [128, 128, 128, 128, 128], 
@@ -51,31 +36,16 @@ def Setup(img_pil, img_noisy_np, INPUT = 'noise', pad = 'reflection', input_dept
               num_channels_skip = [4, 4, 4, 4, 4], 
               upsample_mode='bilinear',
               need_sigmoid=True, need_bias=True, pad=pad, act_fun='LeakyReLU')
-
-  net = net.type(dtype)
-      
+  net = net.type(dtype)      
   net_input = get_noise(input_depth, INPUT, (img_pil.size[1], img_pil.size[0])).type(dtype).detach()
-
-  # Compute number of parameters
-  s  = sum([np.prod(list(p.size())) for p in net.parameters()]); 
-  print ('Number of params: %d' % s)
-
-  # Loss
-  mse = torch.nn.MSELoss().type(dtype)
-
+  mse = torch.nn.MSELoss().type(dtype) #Loss
   img_noisy_torch = np_to_torch(img_noisy_np).type(dtype)
-
   return net, net_input, img_noisy_torch, mse
 
 def closure(params):#reg_noise_std, net_input_saved, noise, net
-    
-  #global i, out_avg, psrn_noisy_last, last_net, net_input
-  
   if params['reg_noise_std'] > 0:
       params['net_input'] = params['net_input_saved'] + params['noise'].normal_() * params['reg_noise_std']
-  
   out = params['net'](params['net_input'])
-  
   out_avg = None
 
   # Smoothing
@@ -87,7 +57,7 @@ def closure(params):#reg_noise_std, net_input_saved, noise, net
   total_loss = params['mse'](out, params['img_noisy_torch'])
   total_loss.backward()
 
-  psrn_noisy = peak_signal_noise_ratio(params['img_noisy_np'], out.detach().cpu().numpy()[0]) 
+  psrn_noisy = peak_signal_noise_ratio(params['img_noisy_np'], out.detach().cpu().numpy()[0][0]) 
   psrn_gt    = peak_signal_noise_ratio(params['ar'], out.detach().cpu().numpy()[0]) 
   psrn_gt_sm = peak_signal_noise_ratio(params['ar'], params['out_avg'].detach().cpu().numpy()[0]) 
   
@@ -105,19 +75,16 @@ def closure(params):#reg_noise_std, net_input_saved, noise, net
           print('Falling back to previous checkpoint.')
           for new_param, net_param in zip(last_net, params['net'].parameters()):
               net_param.data.copy_(new_param.cuda())
-
           return total_loss*0
       else:
           last_net = [x.detach().cpu() for x in params['net'].parameters()]
           params['psrn_noisy_last'] = psrn_noisy
           
   params['i'] += 1
-
   return total_loss
   
-# Main function
 
-def DIP_2D(img_np):
+def DIP_2D(img_np): #Main function
   #Set parameters  
   imsize =-1
   PLOT = True
@@ -172,3 +139,5 @@ def DIP_2D(img_np):
   #Display final results
   out_np = torch_to_np(net(net_input))
   q = plot_image_grid([np.clip(out_np, 0, 1), ar, img_noisy_np], factor=13);
+  
+  return out_np, net.parameters()
