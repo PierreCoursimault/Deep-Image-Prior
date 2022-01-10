@@ -95,6 +95,8 @@ def act(act_fun = 'LeakyReLU'):
 def bn(num_features):
     return nn.BatchNorm2d(num_features)
 
+def bn3(num_features):
+    return nn.BatchNorm3d(num_features)
 
 def conv(in_f, out_f, kernel_size, stride=1, bias=True, pad='zero', downsample_mode='stride'):
     downsampler = None
@@ -118,6 +120,33 @@ def conv(in_f, out_f, kernel_size, stride=1, bias=True, pad='zero', downsample_m
         to_pad = 0
   
     convolver = nn.Conv2d(in_f, out_f, kernel_size, stride, padding=to_pad, bias=bias)
+
+
+    layers = filter(lambda x: x is not None, [padder, convolver, downsampler])
+    return nn.Sequential(*layers)
+
+def conv3(in_f, out_f, kernel_size, stride=1, bias=True, pad='zero', downsample_mode='stride'):
+    downsampler = None
+    if stride != 1 and downsample_mode != 'stride':
+
+        if downsample_mode == 'avg':
+            downsampler = nn.AvgPool3d(stride, stride)
+        elif downsample_mode == 'max':
+            downsampler = nn.MaxPool3d(stride, stride)
+        elif downsample_mode  in ['lanczos2', 'lanczos3']:
+            downsampler = Downsampler(n_planes=out_f, factor=stride, kernel_type=downsample_mode, phase=0.5, preserve_size=True)
+        else:
+            assert False
+
+        stride = 1
+
+    padder = None
+    to_pad = int((kernel_size - 1) / 2)
+    if pad == 'reflection':
+        padder = nn.ReflectionPad3d(to_pad)
+        to_pad = 0
+  
+    convolver = nn.Conv3d(in_f, out_f, kernel_size, stride, padding=to_pad, bias=bias)
 
 
     layers = filter(lambda x: x is not None, [padder, convolver, downsampler])
