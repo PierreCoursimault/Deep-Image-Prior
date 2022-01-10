@@ -21,6 +21,8 @@ torch.backends.cudnn.enabled = True
 torch.backends.cudnn.benchmark =True
 dtype = torch.cuda.FloatTensor
 
+# Redefine DIP functions
+
 """
 Entrees : 
 - size     : dimensions de img_noisy_torchl'image en entree
@@ -115,7 +117,11 @@ def closure(params):
   # Plot l'image renvoyee par DIP a la derniere iteration et la moyenne de toutes les images renvoyees jusque là
   if  params['PLOT'] and params['i'] % params['show_every'] == 0:    
       out_np = torch_to_np(out)
-      plot_image_grid([np.clip(params['expanded_img_noisy_np'], 0, 1), np.clip(out_np, 0, 1), np.clip(params['img_np'], 0, 1)], factor=params['figsize'], nrow=1)
+      if type(params['img_np']) is np.ndarray : 
+        plot_image_grid([np.clip(params['expanded_img_noisy_np'], 0, 1), np.clip(out_np, 0, 1), np.clip(params['img_np'], 0, 1)], factor=params['figsize'], nrow=1)
+      else:        
+        plot_image_grid([np.clip(params['expanded_img_noisy_np'], 0, 1), np.clip(out_np, 0, 1)], factor=params['figsize'], nrow=1)
+
       print("noisy / output : ", psrn_noisy, "initial / output : ", psrn_gt, "initial / avg_output : " , psrn_gt_sm)
 
   # Backtrackingthe generated image to
@@ -132,8 +138,9 @@ def closure(params):
   params['i'] += 1
   return total_loss
 
+# Main functions
 
-def DIP_couche(img_np, img_noisy_np, PLOT = True): #Main function
+def DIP_couche(img_noisy_np, img_np = None, PLOT = True): #Main function
   if len(img_noisy_np.shape) == 2:
     nb_couches = 1;
   else:    
@@ -143,16 +150,19 @@ def DIP_couche(img_np, img_noisy_np, PLOT = True): #Main function
   parameters = []
 
   if len(img_noisy_np.shape) == 2:
-    out_np[0], parameters[0] = DIP_2D(img_np, img_noisy_np)
+    out_np[0], parameters[0] = DIP_2D(img_noisy_np, img_np)
   else:
     #for i in range(nb_couches):
     i = 250
-    out_np[i, :, :], param = DIP_2D(img_np[i], img_noisy_np[i])
+    if type(img_np) is np.ndarray:
+      out_np[i, :, :], param = DIP_2D(img_noisy_np[i], img_np[i])
+    else:
+      out_np[i, :, :], param = DIP_2D(img_noisy_np[i])
     parameters.append(param)
   
 
 
-def DIP_2D(img_np, img_noisy_np, PLOT = True): #Main function
+def DIP_2D(img_noisy_np, img_np = None, PLOT = True): #Main function
   #Set parameters  
   OPT_OVER = 'net'
   LR = 0.01
@@ -176,7 +186,10 @@ def DIP_2D(img_np, img_noisy_np, PLOT = True): #Main function
   closure_params['out_avg'] = None
   closure_params['psrn_noisy_last'] = 0
   closure_params['i'] = 0
-  closure_params['img_np'] = np.expand_dims(img_np, axis=(0))
+  if type(img_np) is np.ndarray:
+    closure_params['img_np'] = np.expand_dims(img_np, axis=(0))
+  else:
+    closure_params['img_np'] = None
   closure_params['img_noisy_np'] = img_noisy_np
   closure_params['expanded_img_noisy_np'] = np.expand_dims(img_noisy_np, axis=(0))
   closure_params['ar'] = ar
@@ -193,3 +206,5 @@ def DIP_2D(img_np, img_noisy_np, PLOT = True): #Main function
   out_np = torch_to_np(net(net_input))
   #q = plot_image_grid([np.clip(out_np, 0, 1), ar, img_noisy_np], factor=13);
   return out_np, net.parameters()
+
+DIP_couche(img_noisy_np, img_np)
