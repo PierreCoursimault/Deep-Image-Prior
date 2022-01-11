@@ -282,55 +282,8 @@ def DIP_couche(img_noisy_np, img_np = None, PLOT = True, target = 0, num_iter = 
   return out_np, parameters
   
 
-def DIP_3D(img_noisy_np, img_np = None, PLOT = True, num_iter = 250): #Main function
+def DIP_2D(img_noisy_np, img_np = None, PLOT = True, num_iter = 250, LR = 0.01, OPTIMIZER='adam'): #Main function
   #Set parameters  
-  OPT_OVER = 'net'
-  LR = 0.01
-  OPTIMIZER='adam'
-  closure_params = {}
-  ar = np.array(img_noisy_np)[None, ...]
-  ar = ar.astype(np.float32) / 255
-
-  # conversion de l'image donnee en entree en Tenseur pour Torch
-  closure_params['img_noisy_torch'] = np_to_torch(img_noisy_np).type(dtype)
-
-  # Setup the DIP
-  net, net_input, closure_params['mse'] = Setup3D(img_noisy_np.shape)
-  p = get_params(OPT_OVER, net, net_input)
-  closure_params['net'] = net
-  closure_params['net_input'] = net_input
-  closure_params['reg_noise_std'] = 1./30. #set to 1./20. for sigma=50
-  closure_params['net_input_saved'] = closure_params['net_input'].detach().clone()
-  closure_params['noise'] = net_input.detach().clone()
-  closure_params['out_avg'] = None
-  closure_params['psrn_noisy_last'] = 0
-  closure_params['i'] = 0
-  if type(img_np) is np.ndarray:
-    closure_params['img_np'] = np.expand_dims(img_np, axis=(0))
-  else:
-    closure_params['img_np'] = None
-  closure_params['img_noisy_np'] = img_noisy_np
-  closure_params['expanded_img_noisy_np'] = np.expand_dims(img_noisy_np, axis=(0))
-  closure_params['ar'] = ar
-  closure_params['PLOT'] = PLOT
-  closure_params['show_every'] = 10
-  closure_params['figsize'] = 5
-  closure_params['exp_weight'] = 0.99
-  closure_initialized = lambda : closure3D(closure_params)
-
-  # Optimize
-  optimize(OPTIMIZER, p, closure_initialized, LR, num_iter)
-
-  #Display final results
-  out_np = torch_to_np(net(net_input))
-  #q = plot_image_grid([np.clip(out_np, 0, 1), ar, img_noisy_np], factor=13);
-  return out_np, net.parameters()
-
-def DIP_2D(img_noisy_np, img_np = None, PLOT = True, num_iter = 250): #Main function
-  #Set parameters  
-  OPT_OVER = 'net'
-  LR = 0.01
-  OPTIMIZER='adam'
   closure_params = {}
   ar = np.array(img_noisy_np)[None, ...]
   ar = ar.astype(np.float32) / 255
@@ -340,7 +293,7 @@ def DIP_2D(img_noisy_np, img_np = None, PLOT = True, num_iter = 250): #Main func
 
   # Setup the DIP
   net, net_input, closure_params['mse'] = Setup(img_noisy_np.shape)
-  p = get_params(OPT_OVER, net, net_input)
+  p = get_params('net', net, net_input)
   closure_params['net'] = net
   closure_params['net_input'] = net_input
   closure_params['reg_noise_std'] = 1./30. #set to 1./20. for sigma=50
@@ -361,6 +314,47 @@ def DIP_2D(img_noisy_np, img_np = None, PLOT = True, num_iter = 250): #Main func
   closure_params['figsize'] = 5
   closure_params['exp_weight'] = 0.99
   closure_initialized = lambda : closure(closure_params)
+
+  # Optimize
+  optimize(OPTIMIZER, p, closure_initialized, LR, num_iter)
+
+  #Display final results
+  out_np = torch_to_np(net(net_input))
+  #q = plot_image_grid([np.clip(out_np, 0, 1), ar, img_noisy_np], factor=13);
+  return out_np, net.parameters()
+
+def DIP_3D(img_noisy_np, img_np = None, PLOT = True, num_iter = 250, LR = 0.01, OPTIMIZER='adam'): #Main function
+  #Set parameters  
+  closure_params = {}
+  ar = np.array(img_noisy_np)[None, ...]
+  ar = ar.astype(np.float32) / 255
+
+  # conversion de l'image donnee en entree en Tenseur pour Torch
+  closure_params['img_noisy_torch'] = np_to_torch(img_noisy_np).type(dtype)
+
+  # Setup the DIP
+  net, net_input, closure_params['mse'] = Setup3D(img_noisy_np.shape)
+  p = get_params('net', net, net_input)
+  closure_params['net'] = net
+  closure_params['net_input'] = net_input
+  closure_params['reg_noise_std'] = 1./30. #set to 1./20. for sigma=50
+  closure_params['net_input_saved'] = closure_params['net_input'].detach().clone()
+  closure_params['noise'] = net_input.detach().clone()
+  closure_params['out_avg'] = None
+  closure_params['psrn_noisy_last'] = 0
+  closure_params['i'] = 0
+  if type(img_np) is np.ndarray:
+    closure_params['img_np'] = np.expand_dims(img_np, axis=(0))
+  else:
+    closure_params['img_np'] = None
+  closure_params['img_noisy_np'] = img_noisy_np
+  closure_params['expanded_img_noisy_np'] = np.expand_dims(img_noisy_np, axis=(0))
+  closure_params['ar'] = ar
+  closure_params['PLOT'] = PLOT
+  closure_params['show_every'] = 10
+  closure_params['figsize'] = 5
+  closure_params['exp_weight'] = 0.99
+  closure_initialized = lambda : closure3D(closure_params)
 
   # Optimize
   optimize(OPTIMIZER, p, closure_initialized, LR, num_iter)
