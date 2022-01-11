@@ -87,7 +87,6 @@ def Setup3D(size, INPUT = 'noise', pad = 'reflection'):
   
   # Creation de l'image d'entree (bruit blanc) de taille (1,1,taille[0],taille[1])  
   net_input = get_noise3D(input_depth, INPUT, (size[0], size[1], size[2])).type(dtype).detach()
-  print(net_input.shape)
   
   # Loss
   mse = torch.nn.MSELoss().type(dtype)
