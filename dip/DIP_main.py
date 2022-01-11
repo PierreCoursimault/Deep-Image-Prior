@@ -258,7 +258,7 @@ def closure3D(params):
 
 # Main functions
 
-def DIP_couche(img_noisy_np, img_np = None, PLOT = True, target = 0, num_iter = 250): #Main function
+def DIP_couche(img_noisy_np, img_np = None, PLOT = True, target = 0, num_iter = 250, LR = 0.01, OPTIMIZER='adam'): #Main function
   if len(img_noisy_np.shape) == 2:
     nb_couches = 1;
   else:
@@ -268,16 +268,16 @@ def DIP_couche(img_noisy_np, img_np = None, PLOT = True, target = 0, num_iter = 
   parameters = []
 
   if target != 0:
-    out_np[0], parameters[0] = DIP_2D(img_noisy_np[target], img_np[target], num_iter = num_iter)
+    out_np[0], parameters[0] = DIP_2D(img_noisy_np[target], img_np[target], num_iter = num_iter, LR = LR, OPTIMIZER = OPTIMIZER)
   else:
     if len(img_noisy_np.shape) == 2:
-      out_np[0], parameters[0] = DIP_2D(img_noisy_np, img_np, num_iter = num_iter)
+      out_np[0], parameters[0] = DIP_2D(img_noisy_np, img_np, num_iter = num_iter, LR = LR, OPTIMIZER = OPTIMIZER)
     else:
       for i in range(nb_couches):
         if type(img_np) is np.ndarray:
-          out_np[i, :, :], param = DIP_2D(img_noisy_np[i], img_np[i], num_iter = num_iter)
+          out_np[i, :, :], param = DIP_2D(img_noisy_np[i], img_np[i], num_iter = num_iter, LR = LR, OPTIMIZER = OPTIMIZER)
         else:
-          out_np[i, :, :], param = DIP_2D(img_noisy_np[i], num_iter = num_iter)
+          out_np[i, :, :], param = DIP_2D(img_noisy_np[i], num_iter = num_iter, LR = LR, OPTIMIZER = OPTIMIZER)
         parameters.append(param)
   return out_np, parameters
   
