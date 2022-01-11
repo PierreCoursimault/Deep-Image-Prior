@@ -164,11 +164,11 @@ def closure(params):
   if params['i'] % params['show_every']:
       if psrn_noisy - params['psrn_noisy_last'] < -5: 
           print('Falling back to previous checkpoint.')
-          for new_param, net_param in zip(closure_params['last_net'], params['net'].parameters()):
+          for new_param, net_param in zip(params['last_net'], params['net'].parameters()):
               net_param.data.copy_(new_param.cuda())
           return total_loss*0
       else:
-          closure_params['last_net'] = [x.detach().cpu() for x in params['net'].parameters()]
+          params['last_net'] = [x.detach().cpu() for x in params['net'].parameters()]
           params['psrn_noisy_last'] = psrn_noisy
           
   params['i'] += 1
@@ -246,11 +246,11 @@ def closure3D(params):
   if params['i'] % params['show_every']:
       if psrn_noisy - params['psrn_noisy_last'] < -5: 
           print('Falling back to previous checkpoint.')
-          for new_param, net_param in zip(closure_params['last_net'], params['net'].parameters()):
+          for new_param, net_param in zip(params['last_net'], params['net'].parameters()):
               net_param.data.copy_(new_param.cuda())
           return total_loss*0
       else:
-          closure_params['last_net'] = [x.detach().cpu() for x in params['net'].parameters()]
+          params['last_net'] = [x.detach().cpu() for x in params['net'].parameters()]
           params['psrn_noisy_last'] = psrn_noisy
           
   params['i'] += 1
