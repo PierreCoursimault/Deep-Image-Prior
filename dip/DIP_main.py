@@ -164,11 +164,11 @@ def closure(params):
   if params['i'] % params['show_every']:
       if psrn_noisy - params['psrn_noisy_last'] < -5: 
           print('Falling back to previous checkpoint.')
-          for new_param, net_param in zip(last_net, params['net'].parameters()):
+          for new_param, net_param in zip(closure_params['last_net'], params['net'].parameters()):
               net_param.data.copy_(new_param.cuda())
           return total_loss*0
       else:
-          last_net = [x.detach().cpu() for x in params['net'].parameters()]
+          closure_params['last_net'] = [x.detach().cpu() for x in params['net'].parameters()]
           params['psrn_noisy_last'] = psrn_noisy
           
   params['i'] += 1
@@ -246,11 +246,11 @@ def closure3D(params):
   if params['i'] % params['show_every']:
       if psrn_noisy - params['psrn_noisy_last'] < -5: 
           print('Falling back to previous checkpoint.')
-          for new_param, net_param in zip(last_net, params['net'].parameters()):
+          for new_param, net_param in zip(closure_params['last_net'], params['net'].parameters()):
               net_param.data.copy_(new_param.cuda())
           return total_loss*0
       else:
-          last_net = [x.detach().cpu() for x in params['net'].parameters()]
+          closure_params['last_net'] = [x.detach().cpu() for x in params['net'].parameters()]
           params['psrn_noisy_last'] = psrn_noisy
           
   params['i'] += 1
@@ -295,6 +295,7 @@ def DIP_2D(img_noisy_np, img_np = None, PLOT = True, num_iter = 250, LR = 0.01, 
   net, net_input, closure_params['mse'] = Setup(img_noisy_np.shape)
   p = get_params('net', net, net_input)
   closure_params['net'] = net
+  closure_params['last_net'] = net
   closure_params['net_input'] = net_input
   closure_params['reg_noise_std'] = 1./30. #set to 1./20. for sigma=50
   closure_params['net_input_saved'] = closure_params['net_input'].detach().clone()
