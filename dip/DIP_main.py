@@ -65,7 +65,7 @@ Entrees :
 - pad         : type de padding utilisé
 Sorties :
 - net             : reseau de neurones utilisé par l'algorithme
-- net_input       : tenseur contenant l'image 2D de bruit blanc avec des valeurs entre 0 et 1, taille = (1,1,taille,taille)
+- net_input       : tenseur contenant l'image 2D de bruit blanc avec des valeurs entre 0 et 1, taille = (1,1,taille,taille, taille)
 - mse             : mean squared error utilisé pour la loss du réseau
 """  
 def Setup3D(size, INPUT = 'noise', pad = 'reflection'):
@@ -83,10 +83,11 @@ def Setup3D(size, INPUT = 'noise', pad = 'reflection'):
               num_channels_skip = [4, 4, 4, 4, 4], 
               upsample_mode='trilinear',
               need_sigmoid=True, need_bias=True, pad=pad, act_fun='LeakyReLU')
-  net = net.type(dtype)      
+  net = net.type(dtype)
   
   # Creation de l'image d'entree (bruit blanc) de taille (1,1,taille[0],taille[1])  
   net_input = get_noise3D(input_depth, INPUT, (size[0], size[1], size[2])).type(dtype).detach()
+  #net_input = np.expand_dims(net_input, axis=(0))
   
   # Loss
   mse = torch.nn.MSELoss().type(dtype)
@@ -202,7 +203,6 @@ def closure3D(params):
   
   # out : Tenseur renvoye par le reseau de neurones avec net_input le bruit blanc donne en entre au reseau
   out = params['net'](params['net_input'])
-
   # out_avg : Tenseur moyen des sorties du reseau au cours du temps
   out_avg = None
 
@@ -214,20 +214,18 @@ def closure3D(params):
       params['out_avg'] = out.detach()
   else:
       params['out_avg'] = params['out_avg'] * params['exp_weight'] + out.detach() * (1 - params['exp_weight'])
-  
   # Calcul de la Loss par rapport à la sortie du reseau et img_noisy_torch qui est le Tenseur renvoye par la fonction Setup()
   total_loss = params['mse'](out, params['img_noisy_torch'])
   # Backtracking
   total_loss.backward()
-
+  
   # caclul du PSNR entre l'image donnee a RED et la sortie du reseau
   # img_noisy_np : image 2D avec valeurs entre 0 et 1 que DIP essaie d'approximer sous format array de numpy
-  # out.detach().cpu().numpy() : de taille (1, nb canaux = 1,nb_colonnes,nb_lignes) = sortie du reseau remis sous forme array numpy
-  psrn_noisy = peak_signal_noise_ratio(params['img_noisy_np'], out.detach().cpu().numpy()[0][0]) 
+  # out.detach().cpu().numpy() : de taille (1, nb canaux = 1,nb_colonnes,nb_lignes, nb_couches) = sortie du reseau remis sous forme array numpy
+  psrn_noisy = peak_signal_noise_ratio(params['img_noisy_np'], out.detach().cpu().numpy()[0][0])
   # ar : de taille (1,taille,taille) car 1 canal
   psrn_gt    = peak_signal_noise_ratio(params['ar'], out.detach().cpu().numpy()[0]) 
   psrn_gt_sm = peak_signal_noise_ratio(params['ar'], params['out_avg'].detach().cpu().numpy()[0]) 
-  
   # Affiche les résultats Loss et PSNR
   print ('Iteration %05d    Loss %f   PSNR_noisy: %f   PSRN_gt: %f PSNR_gt_sm: %f' % (params['i'], total_loss.item(), psrn_noisy, psrn_gt, psrn_gt_sm), '\r', end='')
   # Plot l'image renvoyee par DIP a la derniere iteration et la moyenne de toutes les images renvoyees jusque là
@@ -236,11 +234,10 @@ def closure3D(params):
       slice_index = params['expanded_img_noisy_np'].shape[3]//2
       if type(params['img_np']) is np.ndarray :
         plot_image_grid([np.clip(params['expanded_img_noisy_np'][:, :, :, slice_index], 0, 1), np.clip(out_np[:, :, :, slice_index], 0, 1), np.clip(params['img_np'][:, :, slice_index], 0, 1)], factor=params['figsize'], nrow=1)
-      else:        
-        plot_image_grid([np.clip(params['expanded_img_noisy_np'][:, :, :, slice_index], 0, 1), np.clip(out_np[:, :, :, slice_index], 0, 1)], factor=params['figsize'], nrow=1)
+      else:
+        plot_image_grid([np.clip(params['expanded_img_noisy_np'][:, :, slice_index], 0, 1), np.clip(out_np[:, :, :, slice_index], 0, 1)], factor=params['figsize'], nrow=1)
 
       print("noisy / output : ", psrn_noisy, "initial / output : ", psrn_gt, "initial / avg_output : " , psrn_gt_sm)
-
   # Backtrackingthe generated image to
   if params['i'] % params['show_every']:
       if psrn_noisy - params['psrn_noisy_last'] < -5: 
@@ -253,6 +250,7 @@ def closure3D(params):
           params['psrn_noisy_last'] = psrn_noisy
           
   params['i'] += 1
+  
   return total_loss
 
 # Main functions
@@ -329,11 +327,11 @@ def DIP_3D(img_noisy_np, img_np = None, PLOT = True, num_iter = 250, LR = 0.01, 
   ar = np.array(img_noisy_np)[None, ...]
   ar = ar.astype(np.float32) / 255
 
-  # conversion de l'image donnee en entree en Tenseur pour Torch
-  closure_params['img_noisy_torch'] = np_to_torch(img_noisy_np).type(dtype)
 
   # Setup the DIP
+  print("begin setup")
   net, net_input, closure_params['mse'] = Setup3D(img_noisy_np.shape)
+  print("end setup")
   p = get_params('net', net, net_input)
   closure_params['net'] = net
   closure_params['net_input'] = net_input
@@ -347,8 +345,10 @@ def DIP_3D(img_noisy_np, img_np = None, PLOT = True, num_iter = 250, LR = 0.01, 
     closure_params['img_np'] = np.expand_dims(img_np, axis=(0))
   else:
     closure_params['img_np'] = None
-  closure_params['img_noisy_np'] = img_noisy_np
-  closure_params['expanded_img_noisy_np'] = np.expand_dims(img_noisy_np, axis=(0))
+  closure_params['img_noisy_np'] = np.float32(img_noisy_np)
+  closure_params['expanded_img_noisy_np'] = np.expand_dims(np.float32(img_noisy_np), axis=(0))
+  # conversion de l'image donnee en entree en Tenseur pour Torch
+  closure_params['img_noisy_torch'] = np_to_torch(closure_params['expanded_img_noisy_np']).type(dtype)
   closure_params['ar'] = ar
   closure_params['PLOT'] = PLOT
   closure_params['show_every'] = 10
