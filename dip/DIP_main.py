@@ -15,10 +15,14 @@ import torch
 import torch.optim
 
 from skimage.metrics import peak_signal_noise_ratio
+from skimage.metrics import structural_similarity as ssim
 from utils.denoising_utils import *
+import sys
+from PIL import Image
+
 
 torch.backends.cudnn.enabled = True
-torch.backends.cudnn.benchmark =True
+torch.backends.cudnn.benchmark = True
 dtype = torch.cuda.FloatTensor
 
 # Redefine DIP functions
@@ -222,24 +226,35 @@ def closure3D(params):
   # caclul du PSNR entre l'image donnee a RED et la sortie du reseau
   # img_noisy_np : image 2D avec valeurs entre 0 et 1 que DIP essaie d'approximer sous format array de numpy
   # out.detach().cpu().numpy() : de taille (1, nb canaux = 1,nb_colonnes,nb_lignes, nb_couches) = sortie du reseau remis sous forme array numpy
-  psrn_noisy = peak_signal_noise_ratio(params['img_noisy_np'], out.detach().cpu().numpy()[0][0])
+  out_numpy = out.detach().cpu().numpy()
+  psrn_noisy = peak_signal_noise_ratio(params['img_noisy_np'], out_numpy[0][0])
   # ar : de taille (1,taille,taille) car 1 canal
-  psrn_gt    = peak_signal_noise_ratio(params['ar'], out.detach().cpu().numpy()[0]) 
-  psrn_gt_sm = peak_signal_noise_ratio(params['ar'], params['out_avg'].detach().cpu().numpy()[0]) 
-  # Affiche les résultats Loss et PSNR
-  print ('Iteration %05d    Loss %f   PSNR_noisy: %f   PSRN_gt: %f PSNR_gt_sm: %f' % (params['i'], total_loss.item(), psrn_noisy, psrn_gt, psrn_gt_sm), '\r', end='')
+  psrn_gt    = peak_signal_noise_ratio(params['ar'], out_numpy[0]) 
+  psrn_gt_sm = peak_signal_noise_ratio(params['ar'], params['out_avg'].detach().cpu().numpy()[0])  
+
   # Plot l'image renvoyee par DIP a la derniere iteration et la moyenne de toutes les images renvoyees jusque là
   if  params['PLOT'] and params['i'] % params['show_every'] == 0:    
-      out_np = torch_to_np(out)
+      #out_np = torch_to_np(out)
       slice_index = params['expanded_img_noisy_np'].shape[3]//2
-      if type(params['img_np']) is np.ndarray :
-        plot_image_grid([np.clip(params['expanded_img_noisy_np'][:, :, :, slice_index], 0, 1), np.clip(out_np[:, :, :, slice_index], 0, 1), np.clip(params['img_np'][:, :, slice_index], 0, 1)], factor=params['figsize'], nrow=1)
+      if params['osirim']:
+        im1 = Image.fromarray(out_numpy).save(closure_params['save_directory'] + '/DIP3D_Unfolded_DIPImageJpg_Tr%s_epoch%s_lr%.2e.jpg' % (i,closure_params['num_iter'],closure_params['LR']))
       else:
-        plot_image_grid([np.clip(params['expanded_img_noisy_np'][:, :, slice_index], 0, 1), np.clip(out_np[:, :, :, slice_index], 0, 1)], factor=params['figsize'], nrow=1)
+        if type(params['img_np']) is np.ndarray :
+          plot_image_grid([np.clip(params['expanded_img_noisy_np'][:, :, :, slice_index], 0, 1), np.clip(out_numpy[0, :, :, :, slice_index], 0, 1), np.clip(params['img_np'][:, :, :, slice_index], 0, 1)], factor=params['figsize'], nrow=1)
+        else:
+          plot_image_grid([np.clip(params['expanded_img_noisy_np'][:, :, :, slice_index], 0, 1), np.clip(out_numpy[0, :, :, :, slice_index], 0, 1)], factor=params['figsize'], nrow=1)
 
-      print("noisy / output : ", psrn_noisy, "initial / output : ", psrn_gt, "initial / avg_output : " , psrn_gt_sm)
-  # Backtrackingthe generated image to
+  params['evo_mse'][params['i']] = total_loss
+  params['evo_psnr'][params['i']] = psrn_noisy
+  params['evo_ssim'][params['i']] = ssim(params['img_noisy_np'], out_numpy[0, 0, :, :, :], data_range=params['img_noisy_np'].max() - params['img_noisy_np'].min())
+  # Backtracking the generated image to
   if params['i'] % params['show_every']:
+      # Affiche les résultats Loss et PSNR
+      if params['osirim']:
+        closure_params['log'].write('Iteration %05d    Loss: %f   SSIM: %f   PSNR_noisy: %f   PSRN_gt: %f   PSNR_gt_sm: %f' % (params['i'], total_loss.item(), params['evo_ssim'][params['i']], psrn_noisy, psrn_gt, psrn_gt_sm))
+      else:
+        print('Iteration %05d    Loss %f   SSIM: %f   PSNR_noisy: %f   PSRN_gt:   %f PSNR_gt_sm: %f' % (params['i'], total_loss.item(), params['evo_ssim'][params['i']], psrn_noisy, psrn_gt, psrn_gt_sm))    
+      #print("noisy / output : ", psrn_noisy, "initial / output : ", psrn_gt, "initial / avg_output : " , psrn_gt_sm)
       if psrn_noisy - params['psrn_noisy_last'] < -5: 
           print('Falling back to previous checkpoint.')
           for new_param, net_param in zip(params['last_net'], params['net'].parameters()):
@@ -321,17 +336,20 @@ def DIP_2D(img_noisy_np, img_np = None, PLOT = True, num_iter = 250, LR = 0.01, 
   #q = plot_image_grid([np.clip(out_np, 0, 1), ar, img_noisy_np], factor=13);
   return out_np, net.parameters()
 
-def DIP_3D(img_noisy_np, img_np = None, PLOT = True, num_iter = 250, LR = 0.01, OPTIMIZER='adam'): #Main function
+def DIP_3D(img_noisy_np, img_np = None, PLOT = True, num_iter = 250, LR = 0.01, OPTIMIZER = 'adam', osirim = False, save_directory = "Results"): #Main function
   #Set parameters  
   closure_params = {}
   ar = np.array(img_noisy_np)[None, ...]
   ar = ar.astype(np.float32) / 255
-
+  
+  if osirim:
+    closure_params['save_directory'] = save_directory
+    closure_params['log'] = open(save_directory + '/DIP3D_Unfolded_Log_epochs%s_lr%.3e.txt' % (num_iter ,LR),'w')
+    closure_params['LR'] = LR
+    closure_params['num_iter'] = num_iter
 
   # Setup the DIP
-  print("begin setup")
   net, net_input, closure_params['mse'] = Setup3D(img_noisy_np.shape)
-  print("end setup")
   p = get_params('net', net, net_input)
   closure_params['net'] = net
   closure_params['net_input'] = net_input
@@ -341,6 +359,9 @@ def DIP_3D(img_noisy_np, img_np = None, PLOT = True, num_iter = 250, LR = 0.01, 
   closure_params['out_avg'] = None
   closure_params['psrn_noisy_last'] = 0
   closure_params['i'] = 0
+  closure_params['evo_mse'] = np.zeros((num_iter))
+  closure_params['evo_psnr'] = np.zeros((num_iter))    
+  closure_params['evo_ssim'] = np.zeros((num_iter))    
   if type(img_np) is np.ndarray:
     closure_params['img_np'] = np.expand_dims(img_np, axis=(0))
   else:
@@ -354,6 +375,8 @@ def DIP_3D(img_noisy_np, img_np = None, PLOT = True, num_iter = 250, LR = 0.01, 
   closure_params['show_every'] = 10
   closure_params['figsize'] = 5
   closure_params['exp_weight'] = 0.99
+  closure_params['osirim'] = osirim
+  
   closure_initialized = lambda : closure3D(closure_params)
 
   # Optimize
@@ -362,4 +385,28 @@ def DIP_3D(img_noisy_np, img_np = None, PLOT = True, num_iter = 250, LR = 0.01, 
   #Display final results
   out_np = torch_to_np(net(net_input))
   #q = plot_image_grid([np.clip(out_np, 0, 1), ar, img_noisy_np], factor=13);
+  
+  mse_fig=plt.figure()
+  plt.plot(closure_params['evo_mse'])
+  plt.xlabel('epoch')
+  plt.ylabel('MSE')
+  plt.title("Mean squared error as function of epochs")
+  if osirim:
+    plt.savefig(save_directory + "/DIP3D_Unfolded_MsePng_epoch%s_lr%.2e.png" % (num_iter,LR))
+  psnr_fig=plt.figure()
+  plt.plot(closure_params['evo_psnr'])  
+  plt.xlabel('epoch')
+  plt.ylabel('PSNR')
+  plt.title("Peak signal to noise ratio as function of epochs")
+  if osirim:
+    plt.savefig(save_directory + "/DIP3D_Unfolded_PsnrPng_epoch%s_lr%.2e.png" % (num_iter,LR))
+  ssiù_fig=plt.figure()
+  plt.plot(closure_params['evo_ssim'])
+  plt.xlabel('epoch')
+  plt.ylabel('SSIM')
+  plt.title("Structural similarity as function of epochs")
+  if osirim:
+    plt.savefig(save_directory + "/DIP3D_Unfolded_SsimPng_epoch%s_lr%.2e.png" % (num_iter,LR))
+    closure_params['save_directory'].close()    
+
   return out_np, net.parameters()
