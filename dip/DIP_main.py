@@ -237,7 +237,7 @@ def closure3D(params):
       #out_np = torch_to_np(out)
       slice_index = params['expanded_img_noisy_np'].shape[3]//2
       if params['osirim']:
-        im1 = Image.fromarray(out_numpy).save(closure_params['save_directory'] + '/DIP3D_Unfolded_DIPImageJpg_Tr%s_epoch%s_lr%.2e.jpg' % (i,closure_params['num_iter'],closure_params['LR']))
+        im1 = Image.fromarray(out_numpy[0, 0, :, :, slice_index] * 255).convert('L').save(params['save_directory'] + '/DIP3D_Unfolded_DIPImageJpg_Tr%s_epoch%s_lr%.2e.jpg' % (params['i'], params['num_iter'], params['LR']))
       else:
         if type(params['img_np']) is np.ndarray :
           plot_image_grid([np.clip(params['expanded_img_noisy_np'][:, :, :, slice_index], 0, 1), np.clip(out_numpy[0, :, :, :, slice_index], 0, 1), np.clip(params['img_np'][:, :, :, slice_index], 0, 1)], factor=params['figsize'], nrow=1)
@@ -251,7 +251,7 @@ def closure3D(params):
   if params['i'] % params['show_every']:
       # Affiche les résultats Loss et PSNR
       if params['osirim']:
-        closure_params['log'].write('Iteration %05d    Loss: %f   SSIM: %f   PSNR_noisy: %f   PSRN_gt: %f   PSNR_gt_sm: %f' % (params['i'], total_loss.item(), params['evo_ssim'][params['i']], psrn_noisy, psrn_gt, psrn_gt_sm))
+        params['log'].write('Iteration %05d    Loss: %f   SSIM: %f   PSNR_noisy: %f   PSRN_gt: %f   PSNR_gt_sm: %f\n' % (params['i'], total_loss.item(), params['evo_ssim'][params['i']], psrn_noisy, psrn_gt, psrn_gt_sm))
       else:
         print('Iteration %05d    Loss %f   SSIM: %f   PSNR_noisy: %f   PSRN_gt:   %f PSNR_gt_sm: %f' % (params['i'], total_loss.item(), params['evo_ssim'][params['i']], psrn_noisy, psrn_gt, psrn_gt_sm))    
       #print("noisy / output : ", psrn_noisy, "initial / output : ", psrn_gt, "initial / avg_output : " , psrn_gt_sm)
@@ -344,7 +344,7 @@ def DIP_3D(img_noisy_np, img_np = None, PLOT = True, num_iter = 250, LR = 0.01, 
   
   if osirim:
     closure_params['save_directory'] = save_directory
-    closure_params['log'] = open(save_directory + '/DIP3D_Unfolded_Log_epochs%s_lr%.3e.txt' % (num_iter ,LR),'w')
+    closure_params['log'] = open(save_directory + '/DIP3D_Unfolded_Log_epochs%s_lr%.3e.txt' % (num_iter ,LR),'w+')
     closure_params['LR'] = LR
     closure_params['num_iter'] = num_iter
 
@@ -380,7 +380,7 @@ def DIP_3D(img_noisy_np, img_np = None, PLOT = True, num_iter = 250, LR = 0.01, 
   closure_initialized = lambda : closure3D(closure_params)
 
   # Optimize
-  optimize(OPTIMIZER, p, closure_initialized, LR, num_iter)
+  optimize(OPTIMIZER, p, closure_initialized, LR, num_iter, osirim = osirim)
 
   #Display final results
   out_np = torch_to_np(net(net_input))
@@ -407,6 +407,8 @@ def DIP_3D(img_noisy_np, img_np = None, PLOT = True, num_iter = 250, LR = 0.01, 
   plt.title("Structural similarity as function of epochs")
   if osirim:
     plt.savefig(save_directory + "/DIP3D_Unfolded_SsimPng_epoch%s_lr%.2e.png" % (num_iter,LR))
-    closure_params['save_directory'].close()    
+    closure_params['log'].close()
 
   return out_np, net.parameters()
+
+denoised_image, parameters = DIP_3D(img_noisy_np, img_np=img_noisy_np, num_iter=25, LR=0.005, osirim = True)
