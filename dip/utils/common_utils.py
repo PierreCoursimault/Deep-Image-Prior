@@ -223,7 +223,7 @@ def torch_to_np(img_var):
     return img_var.detach().cpu().numpy()[0]
 
 
-def optimize(optimizer_type, parameters, closure, LR, num_iter):
+def optimize(optimizer_type, parameters, closure, LR, num_iter, osirim = False):
     """Runs optimization loop.
 
     Args:
@@ -240,8 +240,8 @@ def optimize(optimizer_type, parameters, closure, LR, num_iter):
             optimizer.zero_grad()
             closure()
             optimizer.step()
-
-        print('Starting optimization with LBFGS')        
+        if not osirim:
+            print('Starting optimization with LBFGS')        
         def closure2():
             optimizer.zero_grad()
             return closure()
@@ -249,7 +249,8 @@ def optimize(optimizer_type, parameters, closure, LR, num_iter):
         optimizer.step(closure2)
 
     elif optimizer_type == 'adam':
-        print('Starting optimization with ADAM')
+        if not osirim:
+            print('Starting optimization with ADAM')
         optimizer = torch.optim.Adam(parameters, lr=LR)
         
         for j in range(num_iter):
