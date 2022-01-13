@@ -410,5 +410,3 @@ def DIP_3D(img_noisy_np, img_np = None, PLOT = True, num_iter = 250, LR = 0.01, 
     closure_params['log'].close()
 
   return out_np, net.parameters()
-
-denoised_image, parameters = DIP_3D(img_noisy_np, img_np=img_noisy_np, num_iter=25, LR=0.005, osirim = True)
