@@ -109,7 +109,7 @@ def skip(
     return model
 
 def skip3D(
-        num_input_channels=2, num_output_channels=3, 
+        input_size, num_input_channels=2, num_output_channels=3, 
         num_channels_down=[16, 32, 64, 128, 128], num_channels_up=[16, 32, 64, 128, 128], num_channels_skip=[4, 4, 4, 4, 4], 
         filter_size_down=3, filter_size_up=3, filter_skip_size=1,
         need_sigmoid=True, need_bias=True, 
@@ -184,7 +184,7 @@ def skip3D(
             deeper.add(deeper_main)
             k = num_channels_up[i + 1]
 
-        deeper.add(nn.Upsample(scale_factor=2, mode=upsample_mode[i], align_corners=False))
+        deeper.add(nn.Upsample(size=input_size//2**i, scale_factor=2, mode=upsample_mode[i], align_corners=False))
 
         model_tmp.add(conv3(num_channels_skip[i] + k, num_channels_up[i], filter_size_up[i], 1, bias=need_bias, pad=pad))
         model_tmp.add(bn3(num_channels_up[i]))
