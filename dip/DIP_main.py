@@ -82,6 +82,7 @@ def Setup3D(size, INPUT = 'noise', pad = 'reflection'):
   
   # Creation du reseau de neurones
   net = skip3D(
+              size,
               input_depth, 1, 
               num_channels_down = [128, 128, 128, 128, 128], 
               num_channels_up   = [128, 128, 128, 128, 128],
