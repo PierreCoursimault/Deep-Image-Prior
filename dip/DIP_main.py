@@ -394,31 +394,31 @@ def DIP_3D(img_noisy_np, img_np = None, PLOT = True, num_iter = 250, LR = 0.01, 
   #Display final results
   out_np = torch_to_np(net(net_input))
   #q = plot_image_grid([np.clip(out_np, 0, 1), ar, img_noisy_np], factor=13);
-  
-  _ = plt.figure()
-  plt.plot(closure_params['evo_mse'])
-  plt.xlabel('epoch')
-  plt.ylabel('MSE')
-  plt.title("Mean squared error as function of epochs")
-  if osirim:
-    plt.savefig(save_directory + "/DIP3D_Unfolded_MsePng_epoch%s_lr%.2e.png" % (num_iter,LR))
-  _ = plt.figure()
-  plt.plot(closure_params['evo_psnr'])  
-  plt.xlabel('epoch')
-  plt.ylabel('PSNR')
-  plt.title("Peak signal to noise ratio as function of epochs")
-  if osirim:
-    plt.savefig(save_directory + "/DIP3D_Unfolded_PsnrPng_epoch%s_lr%.2e.png" % (num_iter,LR))
-  _ = plt.figure()
-  plt.plot(closure_params['evo_ssim'])
-  plt.xlabel('epoch')
-  plt.ylabel('SSIM')
-  plt.title("Structural similarity as function of epochs")
-  if osirim:
-    plt.savefig(save_directory + "/DIP3D_Unfolded_SsimPng_epoch%s_lr%.2e.png" % (num_iter,LR))
-    closure_params['log'].write("\nDIP_3D took %s seconds\n" % (time.time() - start_time))
-    closure_params['log'].close()
-  else:
-    print("DIP_3D took %s seconds" % round(time.time() - start_time, 2))
+  if osirim or PLOT:
+    _ = plt.figure()
+    plt.plot(closure_params['evo_mse'])
+    plt.xlabel('epoch')
+    plt.ylabel('MSE')
+    plt.title("Mean squared error as function of epochs")
+    if osirim:
+      plt.savefig(save_directory + "/DIP3D_Unfolded_MsePng_epoch%s_lr%.2e.png" % (num_iter,LR))
+    _ = plt.figure()
+    plt.plot(closure_params['evo_psnr'])  
+    plt.xlabel('epoch')
+    plt.ylabel('PSNR')
+    plt.title("Peak signal to noise ratio as function of epochs")
+    if osirim:
+      plt.savefig(save_directory + "/DIP3D_Unfolded_PsnrPng_epoch%s_lr%.2e.png" % (num_iter,LR))
+    _ = plt.figure()
+    plt.plot(closure_params['evo_ssim'])
+    plt.xlabel('epoch')
+    plt.ylabel('SSIM')
+    plt.title("Structural similarity as function of epochs")
+    if osirim:
+      plt.savefig(save_directory + "/DIP3D_Unfolded_SsimPng_epoch%s_lr%.2e.png" % (num_iter,LR))
+      closure_params['log'].write("\nDIP_3D took %s seconds\n" % (time.time() - start_time))
+      closure_params['log'].close()
+    else:
+      print("DIP_3D took %s seconds" % round(time.time() - start_time, 2))
 
   return out_np, net.parameters()
