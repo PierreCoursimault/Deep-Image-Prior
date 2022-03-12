@@ -36,9 +36,10 @@ def testsMain(test, num_iter):
 		img_noisy_np = load_3D('data/18am_T2MS_CBCT_MDL_vert5x5_norm.mat', "CBCTMDLvert5x5_18am_norm")
 		final_size = img_noisy_np.shape
 		side = 4
-		overlap = 15		
-
-		img_blocks = slide3D(img_noisy_np, side, overlap = overlap, output = True)
+		overlap = 15	
+		
+		img_noisy_np = crop_image(img_noisy_np, seuil = 0.1, output = True)
+		img_blocks = slide3D(img_noisy_np, side, overlap = overlap)
 
 		for x in range(side):
 			for y in range(side):
