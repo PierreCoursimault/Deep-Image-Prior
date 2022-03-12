@@ -66,7 +66,7 @@ def reduction_test(img_np, img_noisy_np, side, overlap, num_iter, name):
 	    os.mkdir(save_directory)
     
     #reduce the size of image
-    img_noisy_np, indexes = crop_image(img_noisy_np, seuil = 0.1, output = True)
+    img_noisy_np, indexes = crop_image(img_noisy_np, seuil = 0.1, output = False)
     final_size = img_noisy_np.shape
     
     #remove the channels dimension if it is only one channel
@@ -100,7 +100,7 @@ def reduction_test(img_np, img_noisy_np, side, overlap, num_iter, name):
 	    for y in range(side):
 		    for z in range(side):            
 			    current_block = np.load(getSaveName(save_directory, x, y, z))
-			    print("Denoising : [", str(x), ", ", str(y), ", ", str(z), "] of size", str(current_block.shape))			    
+			    #print("Denoising : [", str(x), ", ", str(y), ", ", str(z), "] of size", str(current_block.shape))			    
 			    current_block, _ = DIP_3D(current_block, num_iter=num_iter, LR=0.005, osirim = True, PLOT=False)
 			    if current_block.shape[0] == 1:
 				    current_block = current_block[0]
