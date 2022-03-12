@@ -39,11 +39,19 @@ def testsMain(test, num_iter):
 	    img_np = load_3D('data/37c_T3M1_MCT_norm.mat', "MCT37c_norm")
 	    img_noisy_np = load_3D('data/37c_T3M1_CBCT_MDL_vert5x5_norm.mat', "CBCTMDLvert5x5_37c_norm")
 	    reduction_test(img_np, img_noisy_np, 4, 15, num_iter, "37c_tests")
+    if test == 6:
+	    img_np = load_3D('data/shepp_logan.mat', "x")
+	    img_noisy_np = img_np
+	    reduction_test(img_np, img_noisy_np, 4, 15, num_iter, "shepp_logan64_tests")
 
 		
 def reduction_test(img_np, img_noisy_np, side, overlap, num_iter, name):
-    save_directory = "tmp_blocks"		
-    final_size = img_noisy_np.shape	
+    if not os.path.isdir(name):
+	    os.mkdir(name)
+    save_directory = name + "/tmp_blocks"
+    if not os.path.isdir(save_directory):
+	    os.mkdir(save_directory)
+    final_size = img_noisy_np.shape
     
     img_noisy_np, indexes = crop_image(img_noisy_np, seuil = 0.1, output = True)
     np.save(name + "/ground_truth.mat", img_np[indexes[0] : indexes[1], indexes[2] : indexes[3], indexes[4] : indexes[5]])
@@ -54,7 +62,7 @@ def reduction_test(img_np, img_noisy_np, side, overlap, num_iter, name):
     for x in range(side):
 	    for y in range(side):
 		    for z in range(side):
-			    np.save(name + "/" + getSaveName(save_directory, x, y, z), img_blocks[x, y, z])
+			    np.save(getSaveName(save_directory, x, y, z), img_blocks[x, y, z])
     del img_np
     del img_noisy_np		
     del indexes
@@ -67,7 +75,7 @@ def reduction_test(img_np, img_noisy_np, side, overlap, num_iter, name):
 			    current_block = np.load(getSaveName(save_directory, x, y, z))
 			    print("Denoising : [", str(x), ", ", str(y), ", ", str(z), "] of size", str(current_block.shape))
 			    current_block, _ = DIP_3D(current_block, num_iter=num_iter, LR=0.005, osirim = False, PLOT=False)
-			    np.save(name + "/" + getSaveName(save_directory, x, y, z, denoised=True), current_block)
+			    np.save(getSaveName(save_directory, x, y, z, denoised=True), current_block)
 			    del current_block
 			    gc.collect()
 
@@ -75,7 +83,7 @@ def reduction_test(img_np, img_noisy_np, side, overlap, num_iter, name):
     for x in range(side):
 	    for y in range(side):
 		    for z in range(side):					
-			    img_blocks_denoised[x, y, z] = np.load(name + "/" + getSaveName(save_directory, x, y, z, denoised=True))
+			    img_blocks_denoised[x, y, z] = np.load(getSaveName(save_directory, x, y, z, denoised=True))
 
     for fenetrage in ["hamming", "lineaire", "carre"]:
 	    for moyennage in ["arithmetique", "geometrique", "contreharmonique"]:
