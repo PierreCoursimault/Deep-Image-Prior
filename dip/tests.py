@@ -46,6 +46,7 @@ def testsMain(test, num_iter):
 
 		
 def reduction_test(img_np, img_noisy_np, side, overlap, num_iter, name):
+    name = name + "_" + side + "side_" + overlap + "overlap_" + num_iter + "num_iter"
     if not os.path.isdir(name):
 	    os.mkdir(name)
     save_directory = name + "/tmp_blocks"
@@ -87,7 +88,7 @@ def reduction_test(img_np, img_noisy_np, side, overlap, num_iter, name):
 
     for fenetrage in ["hamming", "lineaire", "carre"]:
 	    for moyennage in ["arithmetique", "geometrique", "contreharmonique"]:
-		    denoised_image = merge3D(img_blocks_denoised, final_size, overlap = overlap, withChannels = True, output = True, fenetrage = fenetrage, moyennage = moyennage)
+		    denoised_image = merge3D(img_blocks_denoised, final_size, overlap = overlap, withChannels = len(final_size) == 4, output = True, fenetrage = fenetrage, moyennage = moyennage)
 		    np.save(name + "/debruite_" + fenetrage + "_" + moyennage + "_" + num_iter + "iter.mat", denoised_image)
 		    del denoised_image
 		    gc.collect()
