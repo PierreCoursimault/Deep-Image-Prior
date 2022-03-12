@@ -20,8 +20,8 @@ def getSaveName(directory, x, y, z, denoised = False):
 
 
 if __name__ == '__main__':
-    test = sys.argv[1]    
-    if test == 1:
+	test = sys.argv[1]    
+	if test == 1:
 		img_noisy_np = load_3D('data/shepp_logan.mat', "x")
 		denoised_image, parameters = DIP_3D(img_noisy_np, num_iter=25, LR=0.005, osirim = True, PLOT=False)
 	if test == 2:
