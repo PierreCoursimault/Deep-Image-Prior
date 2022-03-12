@@ -100,16 +100,19 @@ def reduction_test(img_np, img_noisy_np, side, overlap, num_iter, name):
 			    del current_block
 			    gc.collect()
 
-    img_blocks_denoised = np.empty((side, side, side), dtype = object)
-    for x in range(side):
-	    for y in range(side):
-		    for z in range(side):					
-			    img_blocks_denoised[x, y, z] = np.load(getSaveName(save_directory, x, y, z, denoised = True))
-
     for fenetrage in ["hamming", "lineaire", "carre"]:
 	    for moyennage in ["arithmetique", "geometrique", "contreharmonique"]:
+		    
+		    img_blocks_denoised = np.empty((side, side, side), dtype = object)
+		    for x in range(side):
+			    for y in range(side):
+				    for z in range(side):					
+					    img_blocks_denoised[x, y, z] = np.load(getSaveName(save_directory, x, y, z, denoised = True))
+
+		
 		    denoised_image = merge3D(img_blocks_denoised, final_size, overlap = overlap, withChannels = len(final_size) > 3, output = True, fenetrage = fenetrage, moyennage = moyennage)
 		    np.save(name + "/debruite_" + fenetrage + "_" + moyennage + "_" + num_iter + "iter.mat", denoised_image)
+		    del img_blocks_denoised
 		    del denoised_image
 		    gc.collect()
 
