@@ -34,11 +34,11 @@ def testsMain(test, num_iter):
     if test == 4:
 	    img_np = load_3D('data/18am_T2MS_MCT_norm.mat', "MCT18am_norm")
 	    img_noisy_np = load_3D('data/18am_T2MS_CBCT_MDL_vert5x5_norm.mat', "CBCTMDLvert5x5_18am_norm")
-	    reduction_test(img_np, img_noisy_np, 4, 15, num_iter, name)
+	    reduction_test(img_np, img_noisy_np, 4, 15, num_iter, "18am_tests")
     if test == 5:
 	    img_np = load_3D('data/37c_T3M1_MCT_norm.mat', "MCT37c_norm")
 	    img_noisy_np = load_3D('data/37c_T3M1_CBCT_MDL_vert5x5_norm.mat', "CBCTMDLvert5x5_37c_norm")
-	    reduction_test(img_np, img_noisy_np, 4, 15, num_iter, name)
+	    reduction_test(img_np, img_noisy_np, 4, 15, num_iter, "37c_tests")
 
 		
 def reduction_test(img_np, img_noisy_np, side, overlap, num_iter, name):
