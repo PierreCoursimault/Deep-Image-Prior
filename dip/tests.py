@@ -60,8 +60,14 @@ def reduction_test(img_np, img_noisy_np, side, overlap, num_iter, name):
     save_directory = name + "/tmp_blocks"
     if not os.path.isdir(save_directory):
 	    os.mkdir(save_directory)
-    final_size = img_noisy_np.shape
     
+    final_size = img_noisy_np.shape
+    if len(final_size) == 4:
+	    if final_size[3] == 1:
+		    img_np = img_np[0]
+		    img_noisy_np = img_noisy_np[0]
+		    final_size = img_noisy_np.shape
+
     img_noisy_np, indexes = crop_image(img_noisy_np, seuil = 0.1, output = True)
     np.save(name + "/ground_truth.mat", img_np[indexes[0] : indexes[1], indexes[2] : indexes[3], indexes[4] : indexes[5]])
     np.save(name + "/bruite.mat", img_noisy_np)
@@ -82,7 +88,7 @@ def reduction_test(img_np, img_noisy_np, side, overlap, num_iter, name):
 	    for y in range(side):
 		    for z in range(side):            
 			    current_block = np.load(getSaveName(save_directory, x, y, z))
-			    print("Denoising : [", str(x), ", ", str(y), ", ", str(z), "] of size", str(current_block.shape))
+			    print("Denoising : [", str(x), ", ", str(y), ", ", str(z), "] of size", str(current_block.shape))			    
 			    current_block, _ = DIP_3D(current_block, num_iter=num_iter, LR=0.005, osirim = False, PLOT=False)
 			    np.save(getSaveName(save_directory, x, y, z, denoised=True), current_block)
 			    del current_block
