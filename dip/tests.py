@@ -126,7 +126,7 @@ def reduction_test(img_np, img_noisy_np, side, overlap, num_iter, name):
 		    denoised_image = merge3D(img_blocks_denoised, final_size, overlap = overlap, withChannels = len(final_size) > 3, output = False, fenetrage = fenetrage, moyennage = moyennage)
 		    
 		    #save the result
-		    np.save(name + "/debruite_" + fenetrage + "_" + moyennage + "_" + str(num_iter) + "iter.mat", denoised_image)
+		    np.save(name + "/debruite_" + fenetrage + "_" + moyennage + "_" + str(num_iter) + "iter", denoised_image)
 		    
 		    #remove unnecessary variables to free the more of RAM
 		    del img_blocks_denoised
