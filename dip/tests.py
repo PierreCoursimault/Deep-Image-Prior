@@ -53,7 +53,7 @@ def testsMain(test, num_iter, overlap):
 	    reduction_test(img_np, img_noisy_np, 6, overlap, num_iter, "37c_tests")
     if test == 8:
 	    img_np = load_3D('data/shepp_logan.mat', "x")
-	    img_noisy_np = img_np
+	    img_noisy_np = img_np.copy()
 	    reduction_test(img_np, img_noisy_np, 2, overlap, num_iter, "shepp_logan64_tests")
 
 		
