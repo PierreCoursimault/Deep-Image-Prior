@@ -65,29 +65,37 @@ def reduction_test(img_np, img_noisy_np, side, overlap, num_iter, name):
     if not os.path.isdir(save_directory):
 	    os.mkdir(save_directory)
     
+    #reduce the size of image
+    img_noisy_np, indexes = crop_image(img_noisy_np, seuil = 0.1, output = True)
     final_size = img_noisy_np.shape
+    
+    #remove the channels dimension if it is only one channel
     if len(final_size) == 4:
 	    if final_size[0] == 1:
 		    img_np = img_np[0]
 		    img_noisy_np = img_noisy_np[0]
 		    final_size = img_noisy_np.shape
-
-    img_noisy_np, indexes = crop_image(img_noisy_np, seuil = 0.1, output = True)
+    
+    #save the noised and groundthruth data put on the same dimension
     np.save(name + "/ground_truth.mat", img_np[indexes[0] : indexes[1], indexes[2] : indexes[3], indexes[4] : indexes[5]])
     np.save(name + "/bruite.mat", img_noisy_np)
     
+    #cut the image on side*side*side blocks
     img_blocks = slide3D(img_noisy_np, side, overlap = overlap)
 
     for x in range(side):
 	    for y in range(side):
 		    for z in range(side):
 			    np.save(getSaveName(save_directory, x, y, z), img_blocks[x, y, z])
+    
+    #remove unnecessary variables to free the more of RAM
     del img_np
     del img_noisy_np		
     del indexes
     del img_blocks
     gc.collect()
 
+    #call DIP on each block
     for x in range(side):
 	    for y in range(side):
 		    for z in range(side):            
@@ -100,18 +108,24 @@ def reduction_test(img_np, img_noisy_np, side, overlap, num_iter, name):
 			    del current_block
 			    gc.collect()
 
+    #merge the denoised image following different fusion methods
     for fenetrage in ["hamming", "lineaire", "carre"]:
 	    for moyennage in ["arithmetique", "geometrique", "contreharmonique"]:
 		    
+		    #reload the denoized blocks
 		    img_blocks_denoised = np.empty((side, side, side), dtype = object)
 		    for x in range(side):
 			    for y in range(side):
 				    for z in range(side):					
 					    img_blocks_denoised[x, y, z] = np.load(getSaveName(save_directory, x, y, z, denoised = True))
 
-		
+		    #merge the blocks into a denoised image
 		    denoised_image = merge3D(img_blocks_denoised, final_size, overlap = overlap, withChannels = len(final_size) > 3, output = True, fenetrage = fenetrage, moyennage = moyennage)
-		    np.save(name + "/debruite_" + fenetrage + "_" + moyennage + "_" + num_iter + "iter.mat", denoised_image)
+		    
+		    #save the result
+		    np.save(name + "/debruite_" + fenetrage + "_" + moyennage + "_" + str(num_iter) + "iter.mat", denoised_image)
+		    
+		    #remove unnecessary variables to free the more of RAM
 		    del img_blocks_denoised
 		    del denoised_image
 		    gc.collect()

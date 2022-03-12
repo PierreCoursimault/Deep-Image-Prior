@@ -90,7 +90,7 @@ def slide3D(img, side, overlap = 0):
     return sliced_img
 
 def meanCustom(values, methode = "arithmetique"):
-
+    
     valuesToMean = np.zeros((len(values)), dtype = float)
     coefs = np.zeros((len(values)), dtype = float)
     for index, pair in enumerate(values):
