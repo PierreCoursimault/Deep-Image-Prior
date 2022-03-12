@@ -14,9 +14,9 @@ def load_3D(fichier, index):
 
 def getSaveName(directory, x, y, z, denoised = False):
     if denoised:
-        return save_directory + "/imgBlock_X" + str(x) + "_Y" + str(y) + "_Z" + str(z) + "_denoised.npy"
+        return directory + "/imgBlock_X" + str(x) + "_Y" + str(y) + "_Z" + str(z) + "_denoised.npy"
     else:
-        return save_directory + "/imgBlock_X" + str(x) + "_Y" + str(y) + "_Z" + str(z) + ".npy"
+        return directory + "/imgBlock_X" + str(x) + "_Y" + str(y) + "_Z" + str(z) + ".npy"
 
 
 def testsMain(test, num_iter):
