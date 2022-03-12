@@ -101,7 +101,7 @@ def reduction_test(img_np, img_noisy_np, side, overlap, num_iter, name):
 		    for z in range(side):            
 			    current_block = np.load(getSaveName(save_directory, x, y, z))
 			    print("Denoising : [", str(x), ", ", str(y), ", ", str(z), "] of size", str(current_block.shape))			    
-			    current_block, _ = DIP_3D(current_block, num_iter=num_iter, LR=0.005, osirim = False, PLOT=False)
+			    current_block, _ = DIP_3D(current_block, num_iter=num_iter, LR=0.005, osirim = True, PLOT=False)
 			    if current_block.shape[0] == 1:
 				    current_block = current_block[0]
 			    np.save(getSaveName(save_directory, x, y, z, denoised=True), current_block)
@@ -120,7 +120,7 @@ def reduction_test(img_np, img_noisy_np, side, overlap, num_iter, name):
 					    img_blocks_denoised[x, y, z] = np.load(getSaveName(save_directory, x, y, z, denoised = True))
 
 		    #merge the blocks into a denoised image
-		    denoised_image = merge3D(img_blocks_denoised, final_size, overlap = overlap, withChannels = len(final_size) > 3, output = True, fenetrage = fenetrage, moyennage = moyennage)
+		    denoised_image = merge3D(img_blocks_denoised, final_size, overlap = overlap, withChannels = len(final_size) > 3, output = False, fenetrage = fenetrage, moyennage = moyennage)
 		    
 		    #save the result
 		    np.save(name + "/debruite_" + fenetrage + "_" + moyennage + "_" + str(num_iter) + "iter.mat", denoised_image)
