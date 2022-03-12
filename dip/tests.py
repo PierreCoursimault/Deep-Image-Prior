@@ -41,7 +41,7 @@ def testsMain(test, num_iter):
 	    reduction_test(img_np, img_noisy_np, 4, 15, num_iter, name)
 
 		
-def reduction_test(img_np, img_noisy_np, side, overlap, num_iter, name)
+def reduction_test(img_np, img_noisy_np, side, overlap, num_iter, name):
     save_directory = "tmp_blocks"		
     final_size = img_noisy_np.shape	
     
