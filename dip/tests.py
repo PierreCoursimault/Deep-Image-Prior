@@ -80,8 +80,8 @@ def reduction_test(img_np, img_noisy_np, side, overlap, num_iter, name):
 		    final_size = img_noisy_np.shape
     
     #save the noised and groundthruth data put on the same dimension
-    np.save(name + "/ground_truth.mat", img_np[indexes[0] : indexes[1], indexes[2] : indexes[3], indexes[4] : indexes[5]])
-    np.save(name + "/bruite.mat", img_noisy_np)
+    np.save(name + "/ground_truth", img_np[indexes[0] : indexes[1], indexes[2] : indexes[3], indexes[4] : indexes[5]])
+    np.save(name + "/bruite", img_noisy_np)
     
     #cut the image on side*side*side blocks
     img_blocks = slide3D(img_noisy_np, side, overlap = overlap)
