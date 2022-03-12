@@ -19,7 +19,7 @@ def getSaveName(directory, x, y, z, denoised = False):
         return directory + "/imgBlock_X" + str(x) + "_Y" + str(y) + "_Z" + str(z) + ".npy"
 
 
-def testsMain(test, num_iter):
+def testsMain(test, num_iter, overlap):
     if test == 1:
 	    img_noisy_np = load_3D('data/shepp_logan.mat', "x")
 	    denoised_image, parameters = DIP_3D(img_noisy_np, num_iter=num_iter, LR=0.005, osirim = True, PLOT=False)
@@ -34,19 +34,27 @@ def testsMain(test, num_iter):
     if test == 4:
 	    img_np = load_3D('data/18am_T2MS_MCT_norm.mat', "MCT18am_norm")
 	    img_noisy_np = load_3D('data/18am_T2MS_CBCT_MDL_vert5x5_norm.mat', "CBCTMDLvert5x5_18am_norm")
-	    reduction_test(img_np, img_noisy_np, 4, 15, num_iter, "18am_tests")
+	    reduction_test(img_np, img_noisy_np, 4, overlap, num_iter, "18am_tests")
     if test == 5:
 	    img_np = load_3D('data/37c_T3M1_MCT_norm.mat', "MCT37c_norm")
 	    img_noisy_np = load_3D('data/37c_T3M1_CBCT_MDL_vert5x5_norm.mat', "CBCTMDLvert5x5_37c_norm")
-	    reduction_test(img_np, img_noisy_np, 4, 15, num_iter, "37c_tests")
+	    reduction_test(img_np, img_noisy_np, 4, overlap, num_iter, "37c_tests")
     if test == 6:
+	    img_np = load_3D('data/37c_T3M1_MCT_norm.mat', "MCT37c_norm")
+	    img_noisy_np = load_3D('data/37c_T3M1_CBCT_MDL_vert5x5_norm.mat', "CBCTMDLvert5x5_37c_norm")
+	    reduction_test(img_np, img_noisy_np, 5, overlap, num_iter, "37c_tests")
+    if test == 7:
+	    img_np = load_3D('data/37c_T3M1_MCT_norm.mat', "MCT37c_norm")
+	    img_noisy_np = load_3D('data/37c_T3M1_CBCT_MDL_vert5x5_norm.mat', "CBCTMDLvert5x5_37c_norm")
+	    reduction_test(img_np, img_noisy_np, 6, overlap, num_iter, "37c_tests")
+    if test == 8:
 	    img_np = load_3D('data/shepp_logan.mat', "x")
 	    img_noisy_np = img_np
-	    reduction_test(img_np, img_noisy_np, 4, 15, num_iter, "shepp_logan64_tests")
+	    reduction_test(img_np, img_noisy_np, 4, overlap, num_iter, "shepp_logan64_tests")
 
 		
 def reduction_test(img_np, img_noisy_np, side, overlap, num_iter, name):
-    name = name + "_" + side + "side_" + overlap + "overlap_" + num_iter + "num_iter"
+    name = name + "_" + str(side) + "side_" + str(overlap) + "overlap_" + str(num_iter) + "num_iter"
     if not os.path.isdir(name):
 	    os.mkdir(name)
     save_directory = name + "/tmp_blocks"
@@ -95,9 +103,7 @@ def reduction_test(img_np, img_noisy_np, side, overlap, num_iter, name):
 
 
 if __name__ == '__main__':
-	test = sys.argv[1]
-	num_iter = sys.argv[2]
-	testsMain(test, num_iter)
+	testsMain(sys.argv[1], sys.argv[2], sys.argv[3])
 
 
 
