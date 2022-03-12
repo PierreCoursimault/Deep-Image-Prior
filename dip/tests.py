@@ -33,19 +33,25 @@ def testsMain(test, num_iter):
 		denoised_image, parameters = DIP_3D(img_noisy_np, img_np=img_np, num_iter=num_iter, LR=0.005, osirim = True, PLOT=False)
 	if test == 4:
 		save_directory = "tmp_blocks"
+		img_np = load_3D('data/18am_T2MS_MCT_norm.mat', "MCT18am_norm")
 		img_noisy_np = load_3D('data/18am_T2MS_CBCT_MDL_vert5x5_norm.mat', "CBCTMDLvert5x5_18am_norm")
 		final_size = img_noisy_np.shape
 		side = 4
 		overlap = 15	
 		
-		img_noisy_np = crop_image(img_noisy_np, seuil = 0.1, output = True)
+		img_noisy_np, indexes = crop_image(img_noisy_np, seuil = 0.1, output = True)
+		np.save("ground_truth.mat", img_np[indexes[0] : indexes[1], indexes[2] : indexes[3], indexes[4] : indexes[5]])
+		np.save("bruite.mat", img_noisy_np)
+		
 		img_blocks = slide3D(img_noisy_np, side, overlap = overlap)
 
 		for x in range(side):
 			for y in range(side):
 				for z in range(side):
 					np.save(getSaveName(save_directory, x, y, z), img_blocks[x, y, z])
-		del img_noisy_np
+		del img_np
+		del img_noisy_np		
+		del indexes
 		del img_blocks
 		gc.collect()
 
