@@ -58,7 +58,10 @@ def testsMain(test, num_iter, overlap):
 
 		
 def reduction_test(img_np, img_noisy_np, side, overlap, num_iter, name):
-    name = "Results/" + name + "_" + str(side) + "side_" + str(overlap) + "overlap_" + str(num_iter) + "num_iter"
+    base_dir = "Results"
+    if not os.path.isdir(base_dir):
+	    os.mkdir(base_dir)    
+    name = base_dir + "/" + name + "_" + str(side) + "side_" + str(overlap) + "overlap_" + str(num_iter) + "num_iter"
     if not os.path.isdir(name):
 	    os.mkdir(name)
     save_directory = name + "/tmp_blocks"
