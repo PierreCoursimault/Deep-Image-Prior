@@ -19,26 +19,24 @@ def getSaveName(directory, x, y, z, denoised = False):
         return save_directory + "/imgBlock_X" + str(x) + "_Y" + str(y) + "_Z" + str(z) + ".npy"
 
 
-if __name__ == '__main__':
-	test = sys.argv[1]    
+def testsMain(test, num_iter):
 	if test == 1:
 		img_noisy_np = load_3D('data/shepp_logan.mat', "x")
-		denoised_image, parameters = DIP_3D(img_noisy_np, num_iter=25, LR=0.005, osirim = True, PLOT=False)
+		denoised_image, parameters = DIP_3D(img_noisy_np, num_iter=num_iter, LR=0.005, osirim = True, PLOT=False)
 	if test == 2:
 		img_np = load_3D('data/18am_T2MS_MCT_norm.mat', "MCT18am_norm")
 		img_noisy_np = load_3D('data/18am_T2MS_CBCT_MDL_vert5x5_norm.mat', "CBCTMDLvert5x5_18am_norm")
-		denoised_image, parameters = DIP_3D(img_noisy_np, img_np=img_np, num_iter=25, LR=0.005, osirim = True, PLOT=False)
+		denoised_image, parameters = DIP_3D(img_noisy_np, img_np=img_np, num_iter=num_iter, LR=0.005, osirim = True, PLOT=False)
 	if test == 3:
 		img_np = load_3D('data/37c_T3M1_MCT_norm.mat', "MCT37c_norm")
 		img_noisy_np = load_3D('data/37c_T3M1_CBCT_MDL_vert5x5_norm.mat', "CBCTMDLvert5x5_37c_norm")
-		denoised_image, parameters = DIP_3D(img_noisy_np, img_np=img_np, num_iter=25, LR=0.005, osirim = True, PLOT=False)
+		denoised_image, parameters = DIP_3D(img_noisy_np, img_np=img_np, num_iter=num_iter, LR=0.005, osirim = True, PLOT=False)
 	if test == 4:
 		save_directory = "tmp_blocks"
 		img_noisy_np = load_3D('data/18am_T2MS_CBCT_MDL_vert5x5_norm.mat', "CBCTMDLvert5x5_18am_norm")
 		final_size = img_noisy_np.shape
 		side = 4
-		overlap = 15
-		num_iter = sys.argv[2]
+		overlap = 15		
 
 		img_blocks = slide3D(img_noisy_np, side, overlap = overlap, output = True)
 
@@ -75,7 +73,10 @@ if __name__ == '__main__':
 				gc.collect()
 
 
-
+if __name__ == '__main__':
+	test = sys.argv[1]
+	num_iter = sys.argv[2]
+	testsMain(test, num_iter)
 
 
 
