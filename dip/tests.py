@@ -135,7 +135,7 @@ def reduction_test(img_np, img_noisy_np, side, overlap, num_iter, name):
 
 
 if __name__ == '__main__':
-	testsMain(sys.argv[1], sys.argv[2], sys.argv[3])
+	testsMain(int(sys.argv[1]), int(sys.argv[2]), int(sys.argv[3]))
 
 
 
