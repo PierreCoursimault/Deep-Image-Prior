@@ -3,9 +3,10 @@ import numpy as np
 
 
 #réduit si possible la taille des données
-def crop_image(img, seuil = 0, forceEven = False):
+def crop_image(img, seuil = 0, forceEven = False, output = True):
     x_size, y_size, z_size = img.shape
-    print("image originale : x=", x_size, "y=", y_size, "z=", z_size)
+    if output:
+        print("image originale : x=", x_size, "y=", y_size, "z=", z_size)
     
     first_X = x_size
     first_Y = y_size
@@ -38,7 +39,8 @@ def crop_image(img, seuil = 0, forceEven = False):
 
     img = img[first_X : last_X, first_Y : last_Y, first_Z : last_Z]
     x_size, y_size, z_size = img.shape
-    print("image rognée : x=", x_size, "y=", y_size, "z=", z_size)
+    if output:
+        print("image rognée : x=", x_size, "y=", y_size, "z=", z_size)
     return img, (first_X, last_X, first_Y, last_Y, first_Z, last_Z)
 
 
