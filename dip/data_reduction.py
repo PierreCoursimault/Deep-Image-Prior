@@ -2,10 +2,10 @@ import gc
 import numpy as np
 
 
-def crop_image(img, seuil = 0, output = True):
+#réduit si possible la taille des données
+def crop_image(img, seuil = 0, forceEven = False):
     x_size, y_size, z_size = img.shape
-    if output:
-        print("image originale : x=", x_size, "y=", y_size, "z=", z_size)
+    print("image originale : x=", x_size, "y=", y_size, "z=", z_size)
     
     first_X = x_size
     first_Y = y_size
@@ -18,12 +18,12 @@ def crop_image(img, seuil = 0, output = True):
         for y in range(y_size):
             for z in range(z_size):
                 if(img[x, y, z] > seuil):
-                    if x > last_X:
-                        last_X = x
-                    if y > last_Y:
-                        last_Y = y
-                    if z > last_Z:
-                        last_Z = z
+                    if x + 1 > last_X:
+                        last_X = x + 1
+                    if y + 1 > last_Y:
+                        last_Y = y + 1
+                    if z + 1 > last_Z:
+                        last_Z = z + 1
                     if x < first_X:
                         first_X = x
                     if y < first_Y:
@@ -31,12 +31,30 @@ def crop_image(img, seuil = 0, output = True):
                     if z < first_Z:
                         first_Z = z
 
+    if forceEven:
+        first_X, last_X = forceEvenDistance(first_X, last_X, 0, x_size)
+        first_Y, last_Y = forceEvenDistance(first_Y, last_Y, 0, y_size)
+        first_Z, last_Z = forceEvenDistance(first_Z, last_Z, 0, z_size)
+
     img = img[first_X : last_X, first_Y : last_Y, first_Z : last_Z]
     x_size, y_size, z_size = img.shape
-    if output:
-        print("image rognée : x=", x_size, "y=", y_size, "z=", z_size)
+    print("image rognée : x=", x_size, "y=", y_size, "z=", z_size)
     return img, (first_X, last_X, first_Y, last_Y, first_Z, last_Z)
 
+
+def forceEvenDistance(firstValue, lastValue, minValue, maxValue):
+    if (lastValue - firstValue) % 2 == 0:
+      return firstValue, lastValue
+    else:
+      if lastValue < maxValue:
+        return firstValue, lastValue + 1
+      else:
+        if firstValue > minValue:
+          return firstValue - 1, lastValue
+        else:
+          return firstValue, lastValue - 1
+    
+    
 def slide3D(img, side, overlap = 0):
 
     size_x, size_y , size_z = img.shape
@@ -88,6 +106,7 @@ def slide3D(img, side, overlap = 0):
         x_remain -= 1
 
     return sliced_img
+
 
 def meanCustom(values, methode = "arithmetique"):
     
