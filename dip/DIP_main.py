@@ -406,6 +406,7 @@ def DIP_3D(img_noisy_np, img_np = None, PLOT = True, num_iter = 250, LR = 0.01, 
     plt.title("Mean squared error as function of epochs")
     if osirim:
       plt.savefig(save_directory + "/DIP3D_Unfolded_MsePng_epoch%s_lr%.2e.png" % (num_iter,LR))
+      plt.close()
     _ = plt.figure()
     plt.plot(closure_params['evo_psnr'])  
     plt.xlabel('epoch')
@@ -413,6 +414,7 @@ def DIP_3D(img_noisy_np, img_np = None, PLOT = True, num_iter = 250, LR = 0.01, 
     plt.title("Peak signal to noise ratio as function of epochs")
     if osirim:
       plt.savefig(save_directory + "/DIP3D_Unfolded_PsnrPng_epoch%s_lr%.2e.png" % (num_iter,LR))
+      plt.close()
     _ = plt.figure()
     plt.plot(closure_params['evo_ssim'])
     plt.xlabel('epoch')
@@ -420,6 +422,7 @@ def DIP_3D(img_noisy_np, img_np = None, PLOT = True, num_iter = 250, LR = 0.01, 
     plt.title("Structural similarity as function of epochs")
     if osirim:
       plt.savefig(save_directory + "/DIP3D_Unfolded_SsimPng_epoch%s_lr%.2e.png" % (num_iter,LR))
+      plt.close()
       closure_params['log'].write("\nDIP_3D took %s seconds\n" % (time.time() - start_time))
       closure_params['log'].close()
     else:
