@@ -9,7 +9,6 @@ from scipy.signal import medfilt
 from skimage.metrics import peak_signal_noise_ratio, normalized_root_mse, structural_similarity
 from RED3D_DIP3D.utils import *
 import argparse
-from bm4d import bm4d
 import os
 import logging
 import sys
