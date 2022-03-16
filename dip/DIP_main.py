@@ -347,7 +347,7 @@ def DIP_3D(img_noisy_np, img_np = None, PLOT = True, num_iter = 250, LR = 0.01, 
   #Set parameters  
   closure_params = {}
   ar = np.array(img_noisy_np)[None, ...]
-  ar = ar.astype(np.float32) / 255
+  ar = ar.astype(np.float32)
 
   if osirim:
     if not os.path.isdir(save_directory):
