@@ -233,6 +233,9 @@ def closure3D(params):
   # img_noisy_np : image 2D avec valeurs entre 0 et 1 que DIP essaie d'approximer sous format array de numpy
   # out.detach().cpu().numpy() : de taille (1, nb canaux = 1,nb_colonnes,nb_lignes, nb_couches) = sortie du reseau remis sous forme array numpy
   out_numpy = out.detach().cpu().numpy()
+  print("params['img_noisy_np'] : " ,params['img_noisy_np'].shape)
+  print("out_numpy : ", out_numpy.shape)
+  print("params['ar'] : ", params['ar'].shape)
   psrn_noisy = peak_signal_noise_ratio(params['img_noisy_np'], out_numpy[0][0])
   # ar : de taille (1,taille,taille) car 1 canal
   psrn_gt    = peak_signal_noise_ratio(params['ar'], out_numpy[0]) 
@@ -377,14 +380,14 @@ def DIP_3D(img_noisy_np, img_np = None, PLOT = True, num_iter = 250, LR = 0.01, 
   closure_params['evo_ssim'] = np.zeros((num_iter))    
   if type(img_np) is np.ndarray:
     print("ok")
-    closure_params['img_np'] = np.expand_dims(img_np, axis=(0))
+    closure_params['img_np'] = img_np
     closure_params['ar'] = img_np
   else:
     print("no")
     closure_params['img_np'] = None
     closure_params['ar'] = ar
   closure_params['img_noisy_np'] = np.float32(img_noisy_np)
-  closure_params['expanded_img_noisy_np'] = np.expand_dims(np.float32(img_noisy_np), axis=(0))
+  closure_params['expanded_img_noisy_np'] = np.float32(img_noisy_np)
   # conversion de l'image donnee en entree en Tenseur pour Torch
   closure_params['img_noisy_torch'] = np_to_torch(closure_params['expanded_img_noisy_np']).type(dtype)
   closure_params['PLOT'] = PLOT
