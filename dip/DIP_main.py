@@ -251,7 +251,7 @@ def closure3D(params):
           plot_image_grid([np.clip(params['expanded_img_noisy_np'][:, :, :, slice_index], 0, 1), np.clip(out_numpy[0, :, :, :, slice_index], 0, 1)], factor=params['figsize'], nrow=1)
 
   params['evo_mse'][params['i']] = total_loss
-  params['evo_psnr'][params['i']] = psrn_noisy
+  params['evo_psnr'][params['i']] = psrn_gt
   params['evo_ssim'][params['i']] = ssim(params['img_noisy_np'], out_numpy[0, 0, :, :, :], data_range=params['img_noisy_np'].max() - params['img_noisy_np'].min())
   # Backtracking the generated image to
   if params['i'] % params['show_every']:
@@ -376,14 +376,17 @@ def DIP_3D(img_noisy_np, img_np = None, PLOT = True, num_iter = 250, LR = 0.01, 
   closure_params['evo_psnr'] = np.zeros((num_iter))    
   closure_params['evo_ssim'] = np.zeros((num_iter))    
   if type(img_np) is np.ndarray:
+    print("ok")
     closure_params['img_np'] = np.expand_dims(img_np, axis=(0))
+    closure_params['ar'] = closure_params['img_np']
   else:
+    print("no")
     closure_params['img_np'] = None
+    closure_params['ar'] = ar
   closure_params['img_noisy_np'] = np.float32(img_noisy_np)
   closure_params['expanded_img_noisy_np'] = np.expand_dims(np.float32(img_noisy_np), axis=(0))
   # conversion de l'image donnee en entree en Tenseur pour Torch
   closure_params['img_noisy_torch'] = np_to_torch(closure_params['expanded_img_noisy_np']).type(dtype)
-  closure_params['ar'] = ar
   closure_params['PLOT'] = PLOT
   closure_params['show_every'] = 10
   closure_params['figsize'] = 5
