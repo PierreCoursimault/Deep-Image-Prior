@@ -378,7 +378,7 @@ def DIP_3D(img_noisy_np, img_np = None, PLOT = True, num_iter = 250, LR = 0.01, 
   if type(img_np) is np.ndarray:
     print("ok")
     closure_params['img_np'] = np.expand_dims(img_np, axis=(0))
-    closure_params['ar'] = closure_params['img_np']
+    closure_params['ar'] = img_np
   else:
     print("no")
     closure_params['img_np'] = None
