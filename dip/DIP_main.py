@@ -237,11 +237,7 @@ def closure3D(params):
   # out.detach().cpu().numpy() : de taille (1, nb canaux = 1,nb_colonnes,nb_lignes, nb_couches) = sortie du reseau remis sous forme array numpy
   out_numpy = out.detach().cpu().numpy()
   psrn_noisy = peak_signal_noise_ratio(params['img_noisy_np'][0], out_numpy[0][0])
-  # ar : de taille (1,taille,taille) car 1 canal
-  
-  print(params['ar'][0].shape)
-  print(out_numpy[0][0].shape)
-  
+  # ar : de taille (1,taille,taille) car 1 canal  
   psrn_gt    = peak_signal_noise_ratio(params['ar'][0], out_numpy[0][0]) 
   psrn_gt_sm = peak_signal_noise_ratio(params['ar'][0], params['out_avg'].detach().cpu().numpy()[0][0])  
 
