@@ -388,7 +388,7 @@ def DIP_3D(img_noisy_np, img_np = None, PLOT = True, num_iter = 250, LR = 0.01, 
     closure_params['ar'] = closure_params['img_np']
   else:
     closure_params['img_np'] = None
-    closure_params['ar'] = np.expand_dims(ar, axis=(0))
+    closure_params['ar'] = ar
   closure_params['img_noisy_np'] = np.expand_dims(np.float32(img_noisy_np), axis=(0))
   closure_params['expanded_img_noisy_np'] = np.expand_dims(img_noisy_np, axis=(0))
   # conversion de l'image donnee en entree en Tenseur pour Torch
