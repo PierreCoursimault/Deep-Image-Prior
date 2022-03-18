@@ -211,8 +211,6 @@ Sorties :
 """
 def closure3D(params):
 
-  global x
-
   if params['reg_noise_std'] > 0:
       params['net_input'] = params['net_input_saved'] + params['noise'].normal_() * params['reg_noise_std']
   
@@ -240,6 +238,10 @@ def closure3D(params):
   out_numpy = out.detach().cpu().numpy()
   psrn_noisy = peak_signal_noise_ratio(params['img_noisy_np'][0], out_numpy[0][0])
   # ar : de taille (1,taille,taille) car 1 canal
+  
+  print(params['ar'][0].shape)
+  print(out_numpy[0][0].shape)
+  
   psrn_gt    = peak_signal_noise_ratio(params['ar'][0], out_numpy[0][0]) 
   psrn_gt_sm = peak_signal_noise_ratio(params['ar'][0], params['out_avg'].detach().cpu().numpy()[0][0])  
 
